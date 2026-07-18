@@ -1,0 +1,14 @@
+# Build output (Eclipse regenerates)
+build/
+
+# Tooling caches
+.serena/
+.claude/
+
+# Frontend (owned by another branch/teammate, not part of this backend commit)
+filasus-jsp/
+frontend/
+
+# Docs source files not meant for the repo
+Guia-Git-GitHub.docx
+docs/
