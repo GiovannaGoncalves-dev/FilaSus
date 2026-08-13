@@ -19,17 +19,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller responsável pelo CRUD de Pacientes.
- * Mapeamento: @WebServlet("/pacientes")
- *
- * Suporta ações via parâmetro 'acao' ou 'action':
- * - list / listar (padrão)
- * - novo
- * - editar
- * - salvar
- * - excluir / deletar
- */
 @WebServlet("/pacientes")
 public class PacienteServlet extends HttpServlet {
 
@@ -88,8 +77,6 @@ public class PacienteServlet extends HttpServlet {
             request.getRequestDispatcher(JSP_FORMULARIO).forward(request, response);
         }
     }
-
-    // ─── Ações de Leitura e Exibição ──────────────────────────────────────────
 
     private void tratarListar(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
@@ -171,8 +158,6 @@ public class PacienteServlet extends HttpServlet {
         request.getRequestDispatcher(JSP_FORMULARIO).forward(request, response);
     }
 
-    // ─── Ações de Escrita (Salvar e Excluir) ──────────────────────────────────
-
     private void tratarSalvar(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
 
@@ -201,8 +186,7 @@ public class PacienteServlet extends HttpServlet {
         if (dataNascStr != null && !dataNascStr.isBlank()) {
             try {
                 rascunho.setDataNascimento(LocalDate.parse(dataNascStr));
-            } catch (DateTimeParseException ignored) {
-            }
+            } catch (DateTimeParseException ignored) {}
         }
 
         if (cpfRaw == null || cpfRaw.isBlank() || !CpfUtil.isValido(cpfRaw)) {
