@@ -46,6 +46,21 @@ public class UnidadeDAO {
         return lista;
     }
 
+    public List<Unidade> buscarPorTermo(String termo) throws SQLException {
+        String sql = "SELECT * FROM Unidade WHERE LOWER(nome_unidade) LIKE ? OR LOWER(endereco_unidade) LIKE ? ORDER BY nome_unidade";
+        List<Unidade> lista = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String like = "%" + termo.toLowerCase() + "%";
+            ps.setString(1, like);
+            ps.setString(2, like);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
     public void atualizar(Unidade unidade) throws SQLException {
         String sql = "UPDATE Unidade SET nome_unidade=?, endereco_unidade=? WHERE id_unidade=?";
         try (Connection conn = DBConnection.getConnection();
