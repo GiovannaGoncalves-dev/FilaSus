@@ -9,11 +9,23 @@ public class CpfUtil {
         // Construtor privado para classe utilitária
     }
 
+    /**
+     * Remove todos os caracteres não numéricos de uma string de CPF.
+     *
+     * @param cpf String contendo CPF formatado ou não.
+     * @return String contendo apenas os 11 dígitos do CPF ou null se o parâmetro for null.
+     */
     public static String desformatar(String cpf) {
         if (cpf == null) return null;
         return cpf.replaceAll("\\D", "");
     }
 
+    /**
+     * Valida se a string representa um CPF válido no formato com ou sem pontuação.
+     *
+     * @param cpf String do CPF a ser validado.
+     * @return true se o CPF for válido, false caso contrário.
+     */
     public static boolean isValido(String cpf) {
         if (cpf == null) return false;
 
@@ -22,11 +34,13 @@ public class CpfUtil {
             return false;
         }
 
+        // Rejeita CPFs com todos os dígitos iguais (ex: 000.000.000-00, 111.111.111-11, etc.)
         if (cleanCpf.matches("(\\d)\\1{10}")) {
             return false;
         }
 
         try {
+            // Cálculo do primeiro dígito verificador
             int soma1 = 0;
             for (int i = 0; i < 9; i++) {
                 soma1 += (cleanCpf.charAt(i) - '0') * (10 - i);
@@ -39,6 +53,7 @@ public class CpfUtil {
                 return false;
             }
 
+            // Cálculo do segundo dígito verificador
             int soma2 = 0;
             for (int i = 0; i < 10; i++) {
                 soma2 += (cleanCpf.charAt(i) - '0') * (11 - i);
@@ -57,6 +72,12 @@ public class CpfUtil {
         }
     }
 
+    /**
+     * Formata um CPF numérico de 11 dígitos no padrão XXX.XXX.XXX-XX.
+     *
+     * @param cpf String do CPF.
+     * @return CPF formatado ou a própria string original se não tiver 11 dígitos.
+     */
     public static String formatar(String cpf) {
         if (cpf == null) return null;
         String clean = desformatar(cpf);
