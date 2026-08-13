@@ -19,17 +19,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller responsável pelo CRUD de Pacientes.
- * Mapeamento: @WebServlet("/pacientes")
- *
- * Suporta ações via parâmetro 'acao' ou 'action':
- * - list / listar (padrão)
- * - novo
- * - editar
- * - salvar
- * - excluir / deletar
- */
 @WebServlet("/pacientes")
 public class PacienteServlet extends HttpServlet {
 
@@ -89,8 +78,6 @@ public class PacienteServlet extends HttpServlet {
         }
     }
 
-    // ─── Ações de Leitura e Exibição ──────────────────────────────────────────
-
     private void tratarListar(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
 
@@ -117,7 +104,6 @@ public class PacienteServlet extends HttpServlet {
             pacientes = usuarioDAO.listarPacientes();
         }
 
-        // Mensagens de feedback trazidas por redirecionamento
         String sucesso = request.getParameter("sucesso");
         if ("salvo".equals(sucesso)) {
             request.setAttribute("sucesso", "Paciente salvo com sucesso!");
@@ -132,7 +118,6 @@ public class PacienteServlet extends HttpServlet {
     private void tratarNovo(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Checa permissão de cadastro (se usuário estiver logado)
         if (AuthUtil.isAutenticado(request) && !AuthUtil.podeGerenciarPacientes(request)) {
             request.setAttribute("erro", "Você não tem permissão para cadastrar novos pacientes.");
         }
@@ -173,8 +158,6 @@ public class PacienteServlet extends HttpServlet {
         request.getRequestDispatcher(JSP_FORMULARIO).forward(request, response);
     }
 
-    // ─── Ações de Escrita (Salvar e Excluir) ──────────────────────────────────
-
     private void tratarSalvar(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
 
@@ -193,7 +176,6 @@ public class PacienteServlet extends HttpServlet {
         String senha = request.getParameter("senha");
         String ativoStr = request.getParameter("ativo");
 
-        // Objeto rascunho para re-preencher o formulário em caso de erro de validação
         Usuario rascunho = new Usuario();
         rascunho.setCpf(cpfRaw);
         rascunho.setNome(nome);
@@ -204,11 +186,9 @@ public class PacienteServlet extends HttpServlet {
         if (dataNascStr != null && !dataNascStr.isBlank()) {
             try {
                 rascunho.setDataNascimento(LocalDate.parse(dataNascStr));
-            } catch (DateTimeParseException ignored) {
-            }
+            } catch (DateTimeParseException ignored) {}
         }
 
-        // Validação de CPF
         if (cpfRaw == null || cpfRaw.isBlank() || !CpfUtil.isValido(cpfRaw)) {
             request.setAttribute("erro", "CPF inválido. Informe um CPF válido com 11 dígitos.");
             request.setAttribute("paciente", rascunho);
@@ -217,7 +197,6 @@ public class PacienteServlet extends HttpServlet {
             return;
         }
 
-        // Validação de Nome
         if (nome == null || nome.isBlank()) {
             request.setAttribute("erro", "O nome do paciente é obrigatório.");
             request.setAttribute("paciente", rascunho);
@@ -248,7 +227,6 @@ public class PacienteServlet extends HttpServlet {
 
             usuarioDAO.atualizar(paciente);
         } else {
-            // Verificação de duplicidade de CPF
             if (usuarioDAO.existeCpf(cpfClean)) {
                 request.setAttribute("erro", "Já existe um usuário cadastrado com o CPF informado.");
                 request.setAttribute("paciente", rascunho);
@@ -257,7 +235,6 @@ public class PacienteServlet extends HttpServlet {
                 return;
             }
 
-            // Verificação de duplicidade de e-mail (se e-mail for fornecido)
             if (email != null && !email.isBlank() && usuarioDAO.existeEmail(email.trim())) {
                 request.setAttribute("erro", "O e-mail informado já está cadastrado no sistema.");
                 request.setAttribute("paciente", rascunho);
@@ -275,7 +252,6 @@ public class PacienteServlet extends HttpServlet {
             novoPaciente.setAtivo(rascunho.isAtivo());
             novoPaciente.setSenhaHash(senha != null && !senha.isBlank() ? senha : "123456");
 
-            // Persiste na tabela Usuario e adiciona o perfil PACIENTE
             usuarioDAO.inserir(novoPaciente);
             perfilDAO.adicionar(cpfClean, PerfilUsuario.PACIENTE);
         }
@@ -300,8 +276,6 @@ public class PacienteServlet extends HttpServlet {
 
         response.sendRedirect(request.getContextPath() + "/pacientes?acao=listar&sucesso=excluido");
     }
-
-    // ─── Métodos Auxiliares ───────────────────────────────────────────────────
 
     private String obtermAcao(HttpServletRequest request) {
         String acao = request.getParameter("acao");

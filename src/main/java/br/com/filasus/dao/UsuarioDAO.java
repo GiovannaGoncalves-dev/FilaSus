@@ -96,6 +96,51 @@ public class UsuarioDAO {
         }
     }
 
+    public List<Usuario> listarTodos() throws SQLException {
+        String sql = "SELECT * FROM Usuario ORDER BY nome_usuario";
+        List<Usuario> lista = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) lista.add(mapear(rs));
+        }
+        return lista;
+    }
+
+    /** Lista usuários que fazem parte da equipe (perfis diferentes de PACIENTE). */
+    public List<Usuario> listarEquipe() throws SQLException {
+        String sql = "SELECT DISTINCT u.* FROM Usuario u "
+                   + "INNER JOIN UsuarioPerfil up ON up.cpf_usuario = u.cpf_usuario "
+                   + "WHERE up.tipo_perfil != 'PACIENTE' ORDER BY u.nome_usuario";
+        List<Usuario> lista = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) lista.add(mapear(rs));
+        }
+        return lista;
+    }
+
+    /** Busca usuários (equipe ou todos) por nome, CPF ou e-mail. */
+    public List<Usuario> buscarUsuarios(String termo) throws SQLException {
+        String sql = "SELECT u.* FROM Usuario u "
+                   + "WHERE LOWER(u.nome_usuario) LIKE ? OR u.cpf_usuario LIKE ? OR LOWER(u.email_usuario) LIKE ? "
+                   + "ORDER BY u.nome_usuario";
+        List<Usuario> lista = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String like = "%" + termo.toLowerCase() + "%";
+            String likeCpf = "%" + termo.replaceAll("\\D", "") + "%";
+            ps.setString(1, like);
+            ps.setString(2, likeCpf);
+            ps.setString(3, like);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
     /** Usuários que têm o perfil informado (join com UsuarioPerfil). */
     public List<Usuario> listarPorPerfil(PerfilUsuario perfil) throws SQLException {
         String sql = "SELECT u.* FROM Usuario u "
