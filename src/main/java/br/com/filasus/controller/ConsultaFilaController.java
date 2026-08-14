@@ -19,7 +19,7 @@ import java.util.List;
  * em que está, o status atual e (se aguardando) a posição na fila.
  */
 @WebServlet("/fila/consulta")
-public class ConsultaFilaServlet extends HttpServlet {
+public class ConsultaFilaController extends HttpServlet {
 
     private final ItemFilaDAO itemFilaDAO = new ItemFilaDAO();
 
