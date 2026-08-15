@@ -162,6 +162,18 @@ public class ItemFilaDAO {
         }
     }
 
+    /** Renova o momento da chamada para que o painel possa anunciar novamente a mesma senha. */
+    public boolean repetirChamada(int idFila, int sequencia) throws SQLException {
+        String sql = "UPDATE ItemFila SET atualizado_em_item_fila = CURRENT_TIMESTAMP "
+                + "WHERE id_fila = ? AND sequencia_item_fila = ? AND status_itemfila = 'chamado'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idFila);
+            ps.setInt(2, sequencia);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
     private ItemFila mapear(ResultSet rs) throws SQLException {
         ItemFila item = new ItemFila();
         item.setId(new ItemFilaId(rs.getInt("id_fila"), rs.getInt("sequencia_item_fila")));

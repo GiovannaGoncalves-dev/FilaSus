@@ -8,12 +8,20 @@
   <display-name>FilaSUS</display-name>
   <description>Sistema de Fila de Atendimento Online para Mutirões do SUS</description>
 
-  <!-- Os .jsp usam JS puro com template literals ${...} — desliga o EL do JSP
-       pra não confundir com Expression Language -->
+  <!-- As telas visuais originais usam template literals JavaScript com ${...}.
+       Mantemos EL desabilitada durante a migração tela a tela para o Jasper não
+       interpretar essas expressões como Expression Language da JSP. -->
   <jsp-config>
     <jsp-property-group>
       <url-pattern>*.jsp</url-pattern>
       <el-ignored>true</el-ignored>
+      <page-encoding>UTF-8</page-encoding>
+    </jsp-property-group>
+    <!-- fragmentos incluídos estaticamente também precisam ser lidos como UTF-8 -->
+    <jsp-property-group>
+      <url-pattern>*.jspf</url-pattern>
+      <el-ignored>true</el-ignored>
+      <page-encoding>UTF-8</page-encoding>
     </jsp-property-group>
   </jsp-config>
 

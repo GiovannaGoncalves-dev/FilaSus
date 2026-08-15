@@ -17,7 +17,7 @@ import java.sql.SQLException;
 public class DBConnection {
 
     private static final String URL = configuracao("FILASUS_DB_URL",
-            "jdbc:mysql://localhost:3306/gerenciamento_fila2"
+            "jdbc:mysql://localhost:3307/gerenciamento_fila2"
                     + "?useSSL=false&serverTimezone=America/Sao_Paulo"
                     + "&characterEncoding=UTF-8");
     private static final String USUARIO = configuracao("FILASUS_DB_USER", "filasus");

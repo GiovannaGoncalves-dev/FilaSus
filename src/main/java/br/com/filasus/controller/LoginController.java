@@ -4,6 +4,7 @@ import br.com.filasus.dao.UsuarioDAO;
 import br.com.filasus.model.Usuario;
 import br.com.filasus.util.AuthUtil;
 import br.com.filasus.util.PasswordUtil;
+import br.com.filasus.util.NavigationUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -37,11 +38,12 @@ public class LoginController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/selecionar-perfil");
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath()
+                    + NavigationUtil.paginaInicial(AuthUtil.getPerfilAtivo(session)));
             return;
         }
 
-        response.sendRedirect(request.getContextPath() + "/jsp/login.jsp");
+        request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
     }
 
     @Override
@@ -115,6 +117,7 @@ public class LoginController extends HttpServlet {
 
             // Login bem-sucedido: cria/obtem a sessão
             HttpSession session = request.getSession(true);
+            request.changeSessionId();
             AuthUtil.login(session, usuario);
 
             if (usuario.getPerfis() != null && usuario.getPerfis().size() == 1) {
@@ -125,7 +128,8 @@ public class LoginController extends HttpServlet {
             if (usuario.getPerfis() != null && usuario.getPerfis().size() > 1) {
                 response.sendRedirect(request.getContextPath() + "/selecionar-perfil");
             } else {
-                response.sendRedirect(request.getContextPath() + "/");
+                response.sendRedirect(request.getContextPath()
+                        + NavigationUtil.paginaInicial(AuthUtil.getPerfilAtivo(session)));
             }
 
         } catch (SQLException e) {

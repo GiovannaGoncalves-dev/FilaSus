@@ -3,6 +3,7 @@ package br.com.filasus.controller;
 import br.com.filasus.model.Usuario;
 import br.com.filasus.model.enums.PerfilUsuario;
 import br.com.filasus.util.AuthUtil;
+import br.com.filasus.util.NavigationUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -41,7 +42,8 @@ public class SelecionarPerfilController extends HttpServlet {
         if (usuario.getPerfis().size() == 1) {
             AuthUtil.setPerfilAtivo(session, usuario.getPerfis().get(0));
             AuthUtil.atualizarCookiesFrontend(request, response);
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath()
+                    + NavigationUtil.paginaInicial(AuthUtil.getPerfilAtivo(session)));
             return;
         }
 
@@ -86,9 +88,11 @@ public class SelecionarPerfilController extends HttpServlet {
             PerfilUsuario perfilSelecionado = PerfilUsuario.valueOf(perfilParam.trim().toUpperCase());
 
             if (usuario.temPerfil(perfilSelecionado)) {
+                request.changeSessionId();
                 AuthUtil.setPerfilAtivo(session, perfilSelecionado);
                 AuthUtil.atualizarCookiesFrontend(request, response);
-                response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?profileSelected=1");
+                response.sendRedirect(request.getContextPath()
+                        + NavigationUtil.paginaInicial(perfilSelecionado));
             } else {
                 request.setAttribute("erro", "O perfil selecionado não pertence à sua conta.");
                 request.setAttribute("perfis", usuario.getPerfis());

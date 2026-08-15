@@ -1,6 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="br.com.filasus.model.enums.PerfilUsuario" %>
+<%!
+  private String h(Object value) {
+    if (value == null) return "";
+    return String.valueOf(value).replace("&", "&amp;").replace("<", "&lt;")
+        .replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
+  }
+%>
 <% String ctx = request.getContextPath(); %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -20,7 +27,7 @@
       </div>
       <div class="login-card__body">
         <% if (request.getAttribute("erro") != null) { %>
-          <div class="alert alert--error" role="alert"><div class="alert__message"><%= request.getAttribute("erro") %></div></div>
+          <div class="alert alert--error" role="alert"><div class="alert__message"><%= h(request.getAttribute("erro")) %></div></div>
         <% } %>
         <form action="<%= ctx %>/selecionar-perfil" method="post">
           <div class="profile-grid">
@@ -37,7 +44,9 @@
           </div>
           <button type="submit" class="btn btn--primary btn--block btn--lg">Continuar</button>
         </form>
-        <a href="<%= ctx %>/logout" class="btn btn--ghost btn--block" style="margin-top:10px">Sair</a>
+        <form action="<%= ctx %>/logout" method="post" style="margin-top:10px">
+          <button type="submit" class="btn btn--ghost btn--block">Sair</button>
+        </form>
       </div>
     </section>
   </div>

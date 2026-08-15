@@ -22,47 +22,46 @@ public class AuthorizationFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        PerfilUsuario[] required = requiredProfiles(path, request.getMethod());
+        PerfilUsuario[] required = requiredProfiles(path);
         if (required == null) {
             chain.doFilter(req, res);
             return;
         }
         if (!AuthUtil.isLogado(request)) {
-            deny(request, response, HttpServletResponse.SC_UNAUTHORIZED, "Não autenticado.");
+            deny(request, response);
             return;
         }
         if (required.length > 0 && !AuthUtil.checarPerfil(request, required)) {
-            deny(request, response, HttpServletResponse.SC_FORBIDDEN, "Perfil sem permissão para esta operação.");
+            deny(request, response);
             return;
         }
         chain.doFilter(req, res);
     }
 
-    private PerfilUsuario[] requiredProfiles(String path, String method) {
+    private PerfilUsuario[] requiredProfiles(String path) {
+        if (path.equals("/atendente") || path.startsWith("/atendente/")) return profiles(PerfilUsuario.ATENDENTE);
+        if (path.equals("/medico") || path.startsWith("/medico/")) return profiles(PerfilUsuario.MEDICO);
+        if (path.equals("/admin") || path.startsWith("/admin/")) return profiles(PerfilUsuario.ADM_UNIDADE, PerfilUsuario.ADM_GERAL);
+        if (path.equals("/paciente") || path.startsWith("/paciente/")) return profiles(PerfilUsuario.PACIENTE);
         if (path.startsWith("/jsp/atendente/")) return profiles(PerfilUsuario.ATENDENTE);
         if (path.startsWith("/jsp/medico/")) return profiles(PerfilUsuario.MEDICO);
         if (path.startsWith("/jsp/admin/")) return profiles(PerfilUsuario.ADM_UNIDADE, PerfilUsuario.ADM_GERAL);
         if (path.startsWith("/jsp/paciente/")) return profiles(PerfilUsuario.PACIENTE);
         if (path.equals("/jsp/painel.jsp")) return profiles();
+        if (path.equals("/painel")) return profiles();
+        if (path.equals("/fila/consulta")) return profiles(PerfilUsuario.PACIENTE);
+        if (path.equals("/historico")) return profiles(PerfilUsuario.ATENDENTE);
+        if (path.equals("/relatorios")) return profiles(PerfilUsuario.ADM_UNIDADE, PerfilUsuario.ADM_GERAL);
         if (path.equals("/fila/emitir") || path.equals("/fila/chamar-proximo")) return profiles(PerfilUsuario.ATENDENTE);
         if (path.equals("/atendimento")) return profiles(PerfilUsuario.MEDICO);
         if (path.equals("/documento/solicitar")) return profiles(PerfilUsuario.PACIENTE);
         if (path.equals("/documento/validar")) return profiles(PerfilUsuario.MEDICO);
-        if (path.startsWith("/api/") && !path.equals("/api/auth")
-                && !(path.equals("/api/patients") && "POST".equals(method))) return profiles();
         return null;
     }
 
     private PerfilUsuario[] profiles(PerfilUsuario... profiles) { return profiles; }
 
-    private void deny(HttpServletRequest request, HttpServletResponse response, int status, String message)
-            throws IOException {
-        if (request.getRequestURI().contains("/api/")) {
-            response.setStatus(status);
-            response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"error\":\"" + message + "\"}");
-        } else {
-            response.sendRedirect(request.getContextPath() + "/jsp/login.jsp");
-        }
+    private void deny(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 }

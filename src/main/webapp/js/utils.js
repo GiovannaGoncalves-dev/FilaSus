@@ -1,42 +1,7 @@
 /* =========================================================================
  * FilaSUS — Utils
- * Funções utilitárias: fetch (com mock), toast, máscaras, formatadores.
+ * Funções utilitárias visuais: toast, máscaras e formatadores.
  * ========================================================================= */
-
-/* ---------- Configuração ---------- */
-const CONFIG = {
-  // true  = usa dados mockados (mock/data.js) — demonstração sem backend
-  // false = chama os Servlets reais via /FilaSUS/api/*
-  USE_MOCK: false,
-  // Nome do contexto da aplicação no Tomcat (nome do projeto no Eclipse)
-  CONTEXT: '/' + window.location.pathname.split('/').filter(Boolean)[0],
-};
-
-/* ---------- API helper ---------- */
-async function api(path, options = {}) {
-  if (CONFIG.USE_MOCK) return mockApi(path, options);
-  const url = path.startsWith('http') ? path : CONFIG.CONTEXT + path;
-  const isFormData = options.body instanceof FormData;
-  const res = await fetch(url, {
-    method: options.method || 'GET',
-    headers: {
-      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-      ...(options.headers || {}),
-    },
-    body: options.body ? (isFormData ? options.body : JSON.stringify(options.body)) : undefined,
-    credentials: 'same-origin',
-  });
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-  if (!res.ok) {
-    const msg = (data && data.error) || `Erro ${res.status}`;
-    const err = new Error(msg);
-    err.status = res.status;
-    err.data = data;
-    throw err;
-  }
-  return data;
-}
 
 /* ---------- Toast ---------- */
 function toast(message, type = 'info', title = '') {
@@ -263,6 +228,3 @@ const ICONS = {
   edit: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>',
   trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
 };
-
-/* ---------- Mock API (substitui Servlets quando USE_MOCK = true) ---------- */
-/* Implementada em mock/data.js */

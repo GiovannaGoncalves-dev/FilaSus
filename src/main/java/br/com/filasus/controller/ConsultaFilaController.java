@@ -27,11 +27,10 @@ public class ConsultaFilaController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String cpfPaciente = request.getParameter("cpfPaciente");
         Usuario usuario = AuthUtil.getUsuarioLogado(request);
-        if ((cpfPaciente == null || cpfPaciente.isBlank()) && usuario != null) {
-            cpfPaciente = usuario.getCpf();
-        }
+        // Na área autenticada a identidade vem exclusivamente da sessão; um
+        // paciente não pode consultar a fila de outro CPF por parâmetro.
+        String cpfPaciente = usuario != null ? usuario.getCpf() : request.getParameter("cpfPaciente");
         if (cpfPaciente != null && !cpfPaciente.isBlank()) {
             try {
                 List<ItemFila> itens = itemFilaDAO.listarPorPaciente(cpfPaciente.trim());
