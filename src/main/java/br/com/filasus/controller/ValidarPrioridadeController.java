@@ -2,6 +2,8 @@ package br.com.filasus.controller;
 
 import br.com.filasus.dao.DocumentoDAO;
 import br.com.filasus.model.enums.StatusValidacaoDocumento;
+import br.com.filasus.model.Usuario;
+import br.com.filasus.util.AuthUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,8 +14,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 /**
- * Aprovar/rejeitar documento de prioridade. Quem valida (cpfValidador) vem
- * do formulário por enquanto — não existe AuthUtil ainda (feature-auth).
+ * Aprovar/rejeitar documento de prioridade. 
  */
 @WebServlet("/documento/validar")
 public class ValidarPrioridadeController extends HttpServlet {
@@ -27,14 +28,15 @@ public class ValidarPrioridadeController extends HttpServlet {
         } catch (SQLException e) {
             request.setAttribute("erro", "Erro ao carregar documentos pendentes: " + e.getMessage());
         }
-        request.getRequestDispatcher("/jsp/documento/validar.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/medico/validar-prioridade.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idDocumentoParam = request.getParameter("idDocumento");
         String decisao = request.getParameter("decisao"); // "aprovado" ou "rejeitado"
-        String cpfValidador = request.getParameter("cpfValidador");
+        Usuario usuario = AuthUtil.getUsuarioLogado(request);
+        String cpfValidador = usuario == null ? null : usuario.getCpf();
 
         if (idDocumentoParam == null || idDocumentoParam.isBlank()
                 || decisao == null || decisao.isBlank()
@@ -48,6 +50,9 @@ public class ValidarPrioridadeController extends HttpServlet {
             int idDocumento = Integer.parseInt(idDocumentoParam);
             StatusValidacaoDocumento status = StatusValidacaoDocumento.fromJson(decisao);
             documentoDAO.validar(idDocumento, status, cpfValidador.trim());
+        } catch (IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            request.setAttribute("erro", "Decisão inválida. Use aprovado ou rejeitado.");
         } catch (SQLException e) {
             request.setAttribute("erro", "Erro ao validar documento: " + e.getMessage());
         }

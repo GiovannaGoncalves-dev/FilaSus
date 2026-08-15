@@ -50,6 +50,18 @@ public class AtendimentoDAO {
         return null;
     }
 
+    public Atendimento buscarPorItem(int idFila, int sequencia) throws SQLException {
+        String sql = "SELECT * FROM Atendimento WHERE id_fila=? AND sequencia_item_fila=? "
+                + "ORDER BY id_atendimento DESC LIMIT 1";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idFila);
+            ps.setInt(2, sequencia);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapear(rs) : null;
+            }
+        }
+    }
+
     /** Atendimento em andamento (fim ainda nulo) de um médico. */
     public Atendimento buscarEmAndamento(String cpfMedico) throws SQLException {
         String sql = "SELECT * FROM Atendimento WHERE cpf_usuario = ? AND fim_atendimento IS NULL LIMIT 1";
@@ -68,6 +80,20 @@ public class AtendimentoDAO {
         List<Atendimento> lista = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, cpfMedico);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
+    public List<Atendimento> listarFinalizadosHoje(String cpfMedico) throws SQLException {
+        String sql = "SELECT * FROM Atendimento WHERE cpf_usuario = ? AND fim_atendimento IS NOT NULL "
+                + "AND fim_atendimento >= CURRENT_DATE AND fim_atendimento < CURRENT_DATE + INTERVAL 1 DAY "
+                + "ORDER BY fim_atendimento DESC";
+        List<Atendimento> lista = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, cpfMedico);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) lista.add(mapear(rs));

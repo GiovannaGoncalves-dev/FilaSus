@@ -4,6 +4,8 @@ import br.com.filasus.dao.AtendimentoDAO;
 import br.com.filasus.dao.ItemFilaDAO;
 import br.com.filasus.model.Atendimento;
 import br.com.filasus.model.enums.StatusItemFila;
+import br.com.filasus.model.Usuario;
+import br.com.filasus.util.AuthUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -14,11 +16,11 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
-/**
+/*
  * Iniciar/finalizar atendimento clínico e marcar item da fila
- * atendido/ausente. cpfMedico vem do formulário por enquanto (sem AuthUtil
- * ainda — feature-auth).
+ * atendido/ausente.  
  */
+
 @WebServlet("/atendimento")
 public class AtendimentoController extends HttpServlet {
 
@@ -27,7 +29,8 @@ public class AtendimentoController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String cpfMedico = request.getParameter("cpfMedico");
+        Usuario usuario = AuthUtil.getUsuarioLogado(request);
+        String cpfMedico = usuario == null ? null : usuario.getCpf();
         if (cpfMedico != null && !cpfMedico.isBlank()) {
             try {
                 Atendimento emAndamento = atendimentoDAO.buscarEmAndamento(cpfMedico.trim());
@@ -37,13 +40,14 @@ public class AtendimentoController extends HttpServlet {
                 request.setAttribute("erro", "Erro ao carregar atendimento: " + e.getMessage());
             }
         }
-        request.getRequestDispatcher("/jsp/atendimento/painel.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/medico/atendimento.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String acao = request.getParameter("acao"); // "iniciar" | "finalizar" | "ausente"
-        String cpfMedico = request.getParameter("cpfMedico");
+        Usuario usuario = AuthUtil.getUsuarioLogado(request);
+        String cpfMedico = usuario == null ? null : usuario.getCpf();
 
         try {
             switch (acao) {
@@ -65,8 +69,6 @@ public class AtendimentoController extends HttpServlet {
         Atendimento atendimento = new Atendimento();
         atendimento.setIdFila(idFila);
         atendimento.setSequenciaItemFila(sequencia);
-        // id_item_fila é coluna solta no schema, sem FK real (ver Atendimento.java) —
-        // reaproveita a sequência, não existe outro valor com significado próprio.
         atendimento.setIdItemFila(sequencia);
         atendimento.setCpfMedico(cpfMedico.trim());
 

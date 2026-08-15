@@ -40,6 +40,7 @@ public class SelecionarPerfilController extends HttpServlet {
         // Se o usuário tem apenas 1 perfil, ativa-o automaticamente e vai para o início
         if (usuario.getPerfis().size() == 1) {
             AuthUtil.setPerfilAtivo(session, usuario.getPerfis().get(0));
+            AuthUtil.atualizarCookiesFrontend(request, response);
             response.sendRedirect(request.getContextPath() + "/");
             return;
         }
@@ -47,7 +48,7 @@ public class SelecionarPerfilController extends HttpServlet {
         // Se tem mais de 1 perfil, disponibiliza a lista para renderização na JSP
         request.setAttribute("perfis", usuario.getPerfis());
         request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-        request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
     }
 
     @Override
@@ -77,7 +78,7 @@ public class SelecionarPerfilController extends HttpServlet {
             request.setAttribute("erro", "Por favor, selecione um perfil válido.");
             request.setAttribute("perfis", usuario.getPerfis());
             request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-            request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+            request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
             return;
         }
 
@@ -86,18 +87,19 @@ public class SelecionarPerfilController extends HttpServlet {
 
             if (usuario.temPerfil(perfilSelecionado)) {
                 AuthUtil.setPerfilAtivo(session, perfilSelecionado);
-                response.sendRedirect(request.getContextPath() + "/");
+                AuthUtil.atualizarCookiesFrontend(request, response);
+                response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?profileSelected=1");
             } else {
                 request.setAttribute("erro", "O perfil selecionado não pertence à sua conta.");
                 request.setAttribute("perfis", usuario.getPerfis());
                 request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-                request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+                request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
             }
         } catch (IllegalArgumentException e) {
             request.setAttribute("erro", "Perfil inválido informado.");
             request.setAttribute("perfis", usuario.getPerfis());
             request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-            request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+            request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
         }
     }
 }

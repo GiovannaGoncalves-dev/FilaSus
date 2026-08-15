@@ -3,6 +3,8 @@ package br.com.filasus.controller;
 import br.com.filasus.dao.ItemFilaDAO;
 import br.com.filasus.model.ItemFila;
 import br.com.filasus.model.enums.StatusItemFila;
+import br.com.filasus.model.Usuario;
+import br.com.filasus.util.AuthUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -26,6 +28,10 @@ public class ConsultaFilaController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String cpfPaciente = request.getParameter("cpfPaciente");
+        Usuario usuario = AuthUtil.getUsuarioLogado(request);
+        if ((cpfPaciente == null || cpfPaciente.isBlank()) && usuario != null) {
+            cpfPaciente = usuario.getCpf();
+        }
         if (cpfPaciente != null && !cpfPaciente.isBlank()) {
             try {
                 List<ItemFila> itens = itemFilaDAO.listarPorPaciente(cpfPaciente.trim());
@@ -40,7 +46,7 @@ public class ConsultaFilaController extends HttpServlet {
                 request.setAttribute("erro", "Erro ao consultar fila: " + e.getMessage());
             }
         }
-        request.getRequestDispatcher("/jsp/fila/consulta.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/paciente/dashboard.jsp").forward(request, response);
     }
 
     /** Posição = 1 + quantos itens aguardando na mesma fila entraram antes. Retorna 0 se não estiver aguardando. */

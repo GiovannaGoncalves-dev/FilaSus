@@ -160,6 +160,16 @@ public class UsuarioDAO {
         }
     }
 
+    public void atualizarSenha(String cpf, String senhaHash) throws SQLException {
+        String sql = "UPDATE Usuario SET senha_usuario = ? WHERE cpf_usuario = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, senhaHash);
+            ps.setString(2, cpf);
+            ps.executeUpdate();
+        }
+    }
+
     // ─── DELETE ───────────────────────────────────────────────────────────────
 
     public void deletar(String cpf) throws SQLException {

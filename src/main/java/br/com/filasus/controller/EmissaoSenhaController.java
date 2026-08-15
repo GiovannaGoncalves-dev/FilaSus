@@ -38,7 +38,7 @@ public class EmissaoSenhaController extends HttpServlet {
                 request.setAttribute("erro", "Erro ao carregar filas: " + e.getMessage());
             }
         }
-        request.getRequestDispatcher("/jsp/fila/emitir.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/atendente/cadastrar-paciente.jsp").forward(request, response);
     }
 
     @Override

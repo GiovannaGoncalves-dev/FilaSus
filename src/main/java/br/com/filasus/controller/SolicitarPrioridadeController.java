@@ -5,6 +5,8 @@ import br.com.filasus.model.Documento;
 import br.com.filasus.model.enums.StatusValidacaoDocumento;
 import br.com.filasus.model.enums.TipoDocumento;
 import br.com.filasus.util.UploadUtil;
+import br.com.filasus.model.Usuario;
+import br.com.filasus.util.AuthUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -28,12 +30,13 @@ public class SolicitarPrioridadeController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/jsp/documento/solicitar.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/paciente/solicitar-prioridade.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String cpfUsuario = request.getParameter("cpfUsuario");
+        Usuario usuario = AuthUtil.getUsuarioLogado(request);
+        String cpfUsuario = usuario == null ? null : usuario.getCpf();
         String tipoParam = request.getParameter("tipo");
         Part arquivo = request.getPart("arquivo");
 
@@ -55,6 +58,9 @@ public class SolicitarPrioridadeController extends HttpServlet {
             documentoDAO.inserir(documento);
 
             request.setAttribute("sucesso", "Documento enviado! Aguarde a validação.");
+        } catch (IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            request.setAttribute("erro", "Tipo de documento inválido. Use relatório, exame ou outro.");
         } catch (IOException | SQLException e) {
             request.setAttribute("erro", "Erro ao enviar documento: " + e.getMessage());
         }

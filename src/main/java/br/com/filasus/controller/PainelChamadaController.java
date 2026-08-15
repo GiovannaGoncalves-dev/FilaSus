@@ -18,8 +18,7 @@ import java.util.List;
 
 /**
  * Painel de chamada (TV): mostra os itens chamados/em atendimento de todas
- * as filas de um mutirão. A própria JSP se atualiza sozinha via
- * &lt;meta http-equiv="refresh"&gt;, sem JS de fetch.
+ * as filas de um mutirão. A própria JSP se atualiza sozinha.
  */
 @WebServlet("/painel")
 public class PainelChamadaController extends HttpServlet {
@@ -45,6 +44,6 @@ public class PainelChamadaController extends HttpServlet {
                 request.setAttribute("erro", "Erro ao carregar painel: " + e.getMessage());
             }
         }
-        request.getRequestDispatcher("/jsp/painel/chamada.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/painel.jsp").forward(request, response);
     }
 }

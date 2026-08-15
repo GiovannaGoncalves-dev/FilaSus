@@ -122,6 +122,32 @@ public class ItemFilaDAO {
         return lista;
     }
 
+    public int calcularPosicao(ItemFila item) throws SQLException {
+        if (item == null || item.getStatus() != StatusItemFila.AGUARDANDO) return 0;
+        String sql = "SELECT COUNT(*) + 1 AS posicao FROM ItemFila anterior "
+                + "WHERE anterior.id_fila=? AND anterior.status_itemfila='aguardando' AND ("
+                + "(EXISTS (SELECT 1 FROM Documento d WHERE d.id_fila_documento=anterior.id_fila "
+                + "AND d.sequencia_item_fila_documento=anterior.sequencia_item_fila AND d.status_validacao_documento='aprovado') "
+                + "AND NOT EXISTS (SELECT 1 FROM Documento atual WHERE atual.id_fila_documento=? "
+                + "AND atual.sequencia_item_fila_documento=? AND atual.status_validacao_documento='aprovado')) "
+                + "OR ((EXISTS (SELECT 1 FROM Documento d WHERE d.id_fila_documento=anterior.id_fila "
+                + "AND d.sequencia_item_fila_documento=anterior.sequencia_item_fila AND d.status_validacao_documento='aprovado')) "
+                + "= (EXISTS (SELECT 1 FROM Documento atual WHERE atual.id_fila_documento=? "
+                + "AND atual.sequencia_item_fila_documento=? AND atual.status_validacao_documento='aprovado')) "
+                + "AND anterior.sequencia_item_fila < ?))";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, item.getIdFila());
+            ps.setInt(2, item.getIdFila());
+            ps.setInt(3, item.getSequenciaItemFila());
+            ps.setInt(4, item.getIdFila());
+            ps.setInt(5, item.getSequenciaItemFila());
+            ps.setInt(6, item.getSequenciaItemFila());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("posicao") : 0;
+            }
+        }
+    }
+
     // ─── UPDATE ───────────────────────────────────────────────────────────────
 
     /** Atualiza o status do item (atualizado_em_item_fila é preenchido pelo próprio banco). */
@@ -140,7 +166,7 @@ public class ItemFilaDAO {
         ItemFila item = new ItemFila();
         item.setId(new ItemFilaId(rs.getInt("id_fila"), rs.getInt("sequencia_item_fila")));
         item.setCpfPaciente(rs.getString("cpf_usuario"));
-        item.setStatus(StatusItemFila.valueOf(rs.getString("status_itemfila")));
+        item.setStatus(StatusItemFila.fromJson(rs.getString("status_itemfila")));
 
         Timestamp entrada = rs.getTimestamp("entrada_em_item_fila");
         if (entrada != null) item.setEntradaEm(entrada.toLocalDateTime());

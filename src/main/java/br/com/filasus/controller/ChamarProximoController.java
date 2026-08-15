@@ -13,7 +13,6 @@ import java.sql.SQLException;
 
 /**
  * Chama o próximo paciente de um mutirão, intercalando prioritário/comum
- * (regra em {@link ChamarProximoService}).
  */
 @WebServlet("/fila/chamar-proximo")
 public class ChamarProximoController extends HttpServlet {
@@ -22,7 +21,7 @@ public class ChamarProximoController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/jsp/fila/chamar.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/atendente/gerenciar-fila.jsp").forward(request, response);
     }
 
     @Override

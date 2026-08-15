@@ -37,6 +37,7 @@ public class LogoutController extends HttpServlet {
         if (session != null) {
             AuthUtil.logout(session);
         }
-        response.sendRedirect(request.getContextPath() + "/login");
+        AuthUtil.limparCookiesFrontend(request, response);
+        response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?logout=1");
     }
 }
