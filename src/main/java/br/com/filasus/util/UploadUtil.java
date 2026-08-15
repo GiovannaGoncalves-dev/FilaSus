@@ -9,40 +9,34 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
-/** Armazena documentos enviados em diretório persistente configurável. */
-public final class UploadUtil {
-    private static final String DIRETORIO_UPLOAD = diretorioUpload();
+/**
+ * Salva arquivos enviados via formulário multipart (usado por
+ * feature-solicitar-prioridade para gravar o Documento.arquivoUrl).
+ *
+ * ponytail: grava em disco local (diretório temporário do sistema); trocar
+ * por um storage externo (S3, disco compartilhado etc.) se a aplicação
+ * passar a rodar em mais de uma instância.
+ */
+public class UploadUtil {
+
+    private static final String DIRETORIO_UPLOAD = System.getProperty("java.io.tmpdir") + "/filasus-uploads";
 
     private UploadUtil() {}
 
-    private static String diretorioUpload() {
-        String configurado = System.getenv("FILASUS_UPLOAD_DIR");
-        return configurado == null || configurado.isBlank()
-                ? System.getProperty("user.home") + "/.filasus/uploads" : configurado;
-    }
-
+    /** Salva o arquivo enviado e devolve o caminho onde ficou gravado. */
     public static String salvar(Part arquivo) throws IOException {
         Files.createDirectories(Paths.get(DIRETORIO_UPLOAD));
-        String original = nomeOriginal(arquivo);
-        String extensao = original != null && original.contains(".")
-                ? original.substring(original.lastIndexOf('.')) : "";
-        Path destino = Paths.get(DIRETORIO_UPLOAD, UUID.randomUUID() + extensao);
-        try (InputStream input = arquivo.getInputStream()) {
-            Files.copy(input, destino, StandardCopyOption.REPLACE_EXISTING);
+
+        String nomeOriginal = arquivo.getSubmittedFileName();
+        String extensao = (nomeOriginal != null && nomeOriginal.contains("."))
+                ? nomeOriginal.substring(nomeOriginal.lastIndexOf('.'))
+                : "";
+        String nomeArquivo = UUID.randomUUID() + extensao;
+        Path destino = Paths.get(DIRETORIO_UPLOAD, nomeArquivo);
+
+        try (InputStream in = arquivo.getInputStream()) {
+            Files.copy(in, destino, StandardCopyOption.REPLACE_EXISTING);
         }
         return destino.toString();
-    }
-
-    private static String nomeOriginal(Part arquivo) {
-        String disposition = arquivo.getHeader("content-disposition");
-        if (disposition == null) return null;
-        for (String trecho : disposition.split(";")) {
-            String valor = trecho.trim();
-            if (valor.startsWith("filename=")) {
-                String nome = valor.substring("filename=".length()).replace("\"", "");
-                return Paths.get(nome).getFileName().toString();
-            }
-        }
-        return null;
     }
 }
