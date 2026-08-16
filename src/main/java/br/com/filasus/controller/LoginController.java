@@ -19,7 +19,7 @@ import java.sql.SQLException;
  * Mapeamento: @WebServlet("/login")
  */
 @WebServlet("/login")
-public class LoginServlet extends HttpServlet {
+public class LoginController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();

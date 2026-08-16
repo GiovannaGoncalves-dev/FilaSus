@@ -17,7 +17,7 @@ import java.io.IOException;
  * Mapeamento: @WebServlet("/selecionar-perfil")
  */
 @WebServlet("/selecionar-perfil")
-public class SelecionarPerfilServlet extends HttpServlet {
+public class SelecionarPerfilController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 

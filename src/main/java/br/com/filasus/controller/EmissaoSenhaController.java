@@ -21,7 +21,7 @@ import java.util.List;
  * mutirão. A sequência do dia é calculada pela própria ItemFilaDAO.
  */
 @WebServlet("/fila/emitir")
-public class EmissaoSenhaServlet extends HttpServlet {
+public class EmissaoSenhaController extends HttpServlet {
 
     private final FilaDAO filaDAO = new FilaDAO();
     private final ItemFilaDAO itemFilaDAO = new ItemFilaDAO();
