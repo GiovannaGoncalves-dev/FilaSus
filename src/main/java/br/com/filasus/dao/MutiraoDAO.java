@@ -114,7 +114,7 @@ public class MutiraoDAO {
         m.setTipo(rs.getString("tipo_mutirao"));
         m.setLocal(rs.getString("local_mutirao"));
         m.setDuracaoMinutos(rs.getInt("duracao_min_mutirao"));
-        m.setStatus(StatusMutirao.valueOf(rs.getString("status_mutirao")));
+        m.setStatus(StatusMutirao.fromJson(rs.getString("status_mutirao")));
         Timestamp criadoEm = rs.getTimestamp("criado_em_mutirao");
         if (criadoEm != null) m.setCriadoEm(criadoEm.toLocalDateTime());
         return m;

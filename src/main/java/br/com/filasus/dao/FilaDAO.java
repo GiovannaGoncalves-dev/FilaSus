@@ -64,12 +64,23 @@ public class FilaDAO {
         }
     }
 
+    public void atualizar(Fila fila) throws SQLException {
+        String sql = "UPDATE Fila SET nome_fila = ?, tipo_fila = ? WHERE id_fila = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fila.getNome());
+            ps.setString(2, fila.getTipo().name());
+            ps.setInt(3, fila.getId());
+            ps.executeUpdate();
+        }
+    }
+
     private Fila mapear(ResultSet rs) throws SQLException {
         Fila f = new Fila();
         f.setId(rs.getInt("id_fila"));
         f.setIdMutirao(rs.getInt("id_mutirao"));
         f.setNome(rs.getString("nome_fila"));
-        f.setTipo(TipoFila.valueOf(rs.getString("tipo_fila")));
+        f.setTipo(TipoFila.fromJson(rs.getString("tipo_fila")));
         return f;
     }
 }

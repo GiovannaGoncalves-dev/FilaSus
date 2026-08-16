@@ -2,10 +2,13 @@ package br.com.filasus.controller;
 
 import br.com.filasus.dao.FilaDAO;
 import br.com.filasus.dao.ItemFilaDAO;
+import br.com.filasus.dao.MutiraoDAO;
+import br.com.filasus.dao.UsuarioDAO;
 import br.com.filasus.model.Fila;
 import br.com.filasus.model.ItemFila;
 import br.com.filasus.model.ItemFilaId;
 import br.com.filasus.model.enums.StatusItemFila;
+import br.com.filasus.util.AuthUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -25,20 +28,12 @@ public class EmissaoSenhaController extends HttpServlet {
 
     private final FilaDAO filaDAO = new FilaDAO();
     private final ItemFilaDAO itemFilaDAO = new ItemFilaDAO();
+    private final MutiraoDAO mutiraoDAO = new MutiraoDAO();
+    private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String idMutiraoParam = request.getParameter("idMutirao");
-        if (idMutiraoParam != null && !idMutiraoParam.isBlank()) {
-            try {
-                List<Fila> filas = filaDAO.listarPorMutirao(Integer.parseInt(idMutiraoParam));
-                request.setAttribute("filas", filas);
-                request.setAttribute("idMutirao", idMutiraoParam);
-            } catch (SQLException e) {
-                request.setAttribute("erro", "Erro ao carregar filas: " + e.getMessage());
-            }
-        }
-        request.getRequestDispatcher("/jsp/fila/emitir.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/atendente/cadastrar-paciente");
     }
 
     @Override
@@ -53,16 +48,26 @@ public class EmissaoSenhaController extends HttpServlet {
         }
 
         try {
+            int idFila = Integer.parseInt(idFilaParam);
+            Fila fila = filaDAO.buscarPorId(idFila);
+            Integer unidade = AuthUtil.getUnidadeAtiva(request);
+            if (fila == null || unidade == null || mutiraoDAO.buscarPorId(fila.getIdMutirao()).getIdUnidade() != unidade)
+                throw new IllegalArgumentException("Fila não pertence à unidade ativa.");
+            String cpf = cpfPaciente.replaceAll("\\D", "");
+            br.com.filasus.model.Usuario paciente = usuarioDAO.buscarPorCpf(cpf);
+            if (paciente == null || !paciente.isAtivo()
+                    || !paciente.temPerfil(br.com.filasus.model.enums.PerfilUsuario.PACIENTE))
+                throw new IllegalArgumentException("Paciente inexistente, inativo ou sem perfil de paciente.");
             ItemFila item = new ItemFila();
-            item.setId(new ItemFilaId(Integer.parseInt(idFilaParam), 0)); // sequência real é calculada pela DAO
-            item.setCpfPaciente(cpfPaciente.trim());
+            item.setId(new ItemFilaId(idFila, 0));
+            item.setCpfPaciente(cpf);
             item.setStatus(StatusItemFila.AGUARDANDO);
             itemFilaDAO.inserir(item);
-
-            request.setAttribute("senhaGerada", item);
-        } catch (SQLException e) {
-            request.setAttribute("erro", "Erro ao emitir senha: " + e.getMessage());
+            request.getSession().setAttribute("flash_sucesso", "Senha F" + idFila + "-"
+                    + String.format("%03d", item.getSequenciaItemFila()) + " emitida com sucesso.");
+        } catch (SQLException | IllegalArgumentException | NullPointerException e) {
+            request.getSession().setAttribute("flash_erro", e.getMessage() == null ? "Erro ao emitir senha." : e.getMessage());
         }
-        doGet(request, response);
+        response.sendRedirect(request.getContextPath() + "/atendente/cadastrar-paciente");
     }
 }

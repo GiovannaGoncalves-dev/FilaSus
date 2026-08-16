@@ -4,7 +4,11 @@ import br.com.filasus.model.Usuario;
 import br.com.filasus.model.enums.PerfilUsuario;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Cookie;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -32,11 +36,11 @@ public class AuthUtil {
         session.setAttribute(USUARIO_SESSION_KEY, usuario);
         session.setAttribute(PERFIL_ATIVO_SESSION_KEY, perfilAtivo);
 
-        // Se o usuário possui apenas 1 unidade vinculada, define-a automaticamente como ativa
+        // Sempre reescreve a unidade ativa: sem isso um login novo na mesma sessão
+        // herdaria a unidade do usuário anterior.
         List<Integer> unidades = usuario.getUnidadeIds();
-        if (unidades != null && unidades.size() == 1) {
-            session.setAttribute(UNIDADE_ATIVA_SESSION_KEY, unidades.get(0));
-        }
+        session.setAttribute(UNIDADE_ATIVA_SESSION_KEY,
+                unidades != null && unidades.size() == 1 ? unidades.get(0) : null);
     }
 
     /**
@@ -69,6 +73,53 @@ public class AuthUtil {
                 // Sessão já desativada/invalidada
             }
         }
+    }
+
+    /**
+     * Expõe ao JavaScript somente os dados de apresentação da sessão. A
+     * autorização continua sendo feita exclusivamente pela HttpSession.
+     */
+    public static void atualizarCookiesFrontend(HttpServletRequest request, HttpServletResponse response) {
+        Usuario usuario = getUsuarioLogado(request);
+        PerfilUsuario perfil = getPerfilAtivo(request);
+        if (usuario == null || perfil == null) return;
+
+        String role = switch (perfil) {
+            case PACIENTE -> "paciente";
+            case ATENDENTE -> "atendente";
+            case MEDICO -> "medico";
+            case ADM_UNIDADE, ADM_GERAL -> "admin";
+        };
+        adicionarCookie(request, response, "filasus_user_name", usuario.getNome());
+        adicionarCookie(request, response, "filasus_user_cpf", usuario.getCpf());
+        adicionarCookie(request, response, "filasus_user_role", role);
+    }
+
+    public static void limparCookiesFrontend(HttpServletRequest request, HttpServletResponse response) {
+        removerCookie(request, response, "filasus_user_name");
+        removerCookie(request, response, "filasus_user_cpf");
+        removerCookie(request, response, "filasus_user_role");
+    }
+
+    private static void adicionarCookie(HttpServletRequest request, HttpServletResponse response,
+                                        String nome, String valor) {
+        Cookie cookie = new Cookie(nome, URLEncoder.encode(valor == null ? "" : valor, StandardCharsets.UTF_8));
+        cookie.setPath(caminhoCookie(request));
+        cookie.setHttpOnly(false);
+        cookie.setSecure(request.isSecure());
+        response.addCookie(cookie);
+    }
+
+    private static void removerCookie(HttpServletRequest request, HttpServletResponse response, String nome) {
+        Cookie cookie = new Cookie(nome, "");
+        cookie.setPath(caminhoCookie(request));
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
+    private static String caminhoCookie(HttpServletRequest request) {
+        String contexto = request.getContextPath();
+        return contexto == null || contexto.isEmpty() ? "/" : contexto;
     }
 
     /**
@@ -161,10 +212,7 @@ public class AuthUtil {
     public static boolean checarPerfil(HttpSession session, PerfilUsuario perfilNecessario) {
         if (!isLogado(session) || perfilNecessario == null) return false;
         PerfilUsuario perfilAtivo = getPerfilAtivo(session);
-        if (perfilAtivo == perfilNecessario) return true;
-
-        Usuario usuario = getUsuarioLogado(session);
-        return usuario != null && usuario.temPerfil(perfilNecessario);
+        return perfilAtivo == perfilNecessario;
     }
 
     /**
@@ -180,10 +228,8 @@ public class AuthUtil {
     public static boolean checarPerfil(HttpSession session, PerfilUsuario... perfisPermitidos) {
         if (!isLogado(session) || perfisPermitidos == null) return false;
         PerfilUsuario perfilAtivo = getPerfilAtivo(session);
-        Usuario usuario = getUsuarioLogado(session);
-
         for (PerfilUsuario p : perfisPermitidos) {
-            if (perfilAtivo == p || (usuario != null && usuario.temPerfil(p))) {
+            if (perfilAtivo == p) {
                 return true;
             }
         }

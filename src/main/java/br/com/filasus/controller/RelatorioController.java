@@ -20,13 +20,8 @@ import java.util.Map;
 /**
  * Relatório simples de um mutirão: quantidade de itens de fila por status,
  * somando todas as filas do mutirão.
- *
- * ponytail: agregação feita aqui varrendo os status um a um pela DAO já
- * existente, sem criar uma query agregada nova (COUNT/GROUP BY) na DAO
- * compartilhada. Se o relatório crescer (períodos, múltiplos mutirões),
- * migrar para um método agregado na ItemFilaDAO, combinando antes com quem
- * mais mexe nela.
  */
+
 @WebServlet("/relatorios")
 public class RelatorioController extends HttpServlet {
 
@@ -58,6 +53,6 @@ public class RelatorioController extends HttpServlet {
                 request.setAttribute("erro", "Erro ao gerar relatório: " + e.getMessage());
             }
         }
-        request.getRequestDispatcher("/jsp/relatorio/dashboard.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/admin/relatorios.jsp").forward(request, response);
     }
 }

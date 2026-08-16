@@ -163,18 +163,19 @@ public class UsuarioDAO {
 
     /** Busca pacientes por nome ou CPF (somente dígitos) — substring, case-insensitive. */
     public List<Usuario> buscarPacientes(String termo) throws SQLException {
+        // sem esse cuidado, um termo só de letras vira LIKE '%%' no CPF e casa com todo mundo
+        String digitos = termo.replaceAll("\\D", "");
         String sql = "SELECT u.* FROM Usuario u "
                    + "INNER JOIN UsuarioPerfil up ON up.cpf_usuario = u.cpf_usuario "
                    + "WHERE up.tipo_perfil = 'PACIENTE' "
-                   + "AND (LOWER(u.nome_usuario) LIKE ? OR u.cpf_usuario LIKE ?) "
-                   + "ORDER BY u.nome_usuario";
+                   + "AND (LOWER(u.nome_usuario) LIKE ?"
+                   + (digitos.isEmpty() ? "" : " OR u.cpf_usuario LIKE ?")
+                   + ") ORDER BY u.nome_usuario";
         List<Usuario> lista = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            String like = "%" + termo.toLowerCase() + "%";
-            String likeCpf = "%" + termo.replaceAll("\\D", "") + "%";
-            ps.setString(1, like);
-            ps.setString(2, likeCpf);
+            ps.setString(1, "%" + termo.toLowerCase() + "%");
+            if (!digitos.isEmpty()) ps.setString(2, "%" + digitos + "%");
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) lista.add(mapear(rs));
             }
@@ -201,6 +202,16 @@ public class UsuarioDAO {
             ps.setBoolean(7, usuario.isAtivo());
             ps.setString(8, usuario.getCpf());
 
+            ps.executeUpdate();
+        }
+    }
+
+    public void atualizarSenha(String cpf, String senhaHash) throws SQLException {
+        String sql = "UPDATE Usuario SET senha_usuario = ? WHERE cpf_usuario = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, senhaHash);
+            ps.setString(2, cpf);
             ps.executeUpdate();
         }
     }

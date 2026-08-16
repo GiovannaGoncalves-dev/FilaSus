@@ -3,6 +3,7 @@ package br.com.filasus.controller;
 import br.com.filasus.model.Usuario;
 import br.com.filasus.model.enums.PerfilUsuario;
 import br.com.filasus.util.AuthUtil;
+import br.com.filasus.util.NavigationUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -40,14 +41,16 @@ public class SelecionarPerfilController extends HttpServlet {
         // Se o usuário tem apenas 1 perfil, ativa-o automaticamente e vai para o início
         if (usuario.getPerfis().size() == 1) {
             AuthUtil.setPerfilAtivo(session, usuario.getPerfis().get(0));
-            response.sendRedirect(request.getContextPath() + "/");
+            AuthUtil.atualizarCookiesFrontend(request, response);
+            response.sendRedirect(request.getContextPath()
+                    + NavigationUtil.paginaInicial(AuthUtil.getPerfilAtivo(session)));
             return;
         }
 
         // Se tem mais de 1 perfil, disponibiliza a lista para renderização na JSP
         request.setAttribute("perfis", usuario.getPerfis());
         request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-        request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
     }
 
     @Override
@@ -77,7 +80,7 @@ public class SelecionarPerfilController extends HttpServlet {
             request.setAttribute("erro", "Por favor, selecione um perfil válido.");
             request.setAttribute("perfis", usuario.getPerfis());
             request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-            request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+            request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
             return;
         }
 
@@ -85,19 +88,22 @@ public class SelecionarPerfilController extends HttpServlet {
             PerfilUsuario perfilSelecionado = PerfilUsuario.valueOf(perfilParam.trim().toUpperCase());
 
             if (usuario.temPerfil(perfilSelecionado)) {
+                request.changeSessionId();
                 AuthUtil.setPerfilAtivo(session, perfilSelecionado);
-                response.sendRedirect(request.getContextPath() + "/");
+                AuthUtil.atualizarCookiesFrontend(request, response);
+                response.sendRedirect(request.getContextPath()
+                        + NavigationUtil.paginaInicial(perfilSelecionado));
             } else {
                 request.setAttribute("erro", "O perfil selecionado não pertence à sua conta.");
                 request.setAttribute("perfis", usuario.getPerfis());
                 request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-                request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+                request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
             }
         } catch (IllegalArgumentException e) {
             request.setAttribute("erro", "Perfil inválido informado.");
             request.setAttribute("perfis", usuario.getPerfis());
             request.setAttribute("perfilAtivo", AuthUtil.getPerfilAtivo(session));
-            request.getRequestDispatcher("/selecionar-perfil.jsp").forward(request, response);
+            request.getRequestDispatcher("/jsp/selecionar-perfil.jsp").forward(request, response);
         }
     }
 }

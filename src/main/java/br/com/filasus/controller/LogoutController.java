@@ -22,7 +22,8 @@ public class LogoutController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processLogout(request, response);
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                "Use POST para encerrar a sessao.");
     }
 
     @Override
@@ -37,6 +38,7 @@ public class LogoutController extends HttpServlet {
         if (session != null) {
             AuthUtil.logout(session);
         }
+        AuthUtil.limparCookiesFrontend(request, response);
         response.sendRedirect(request.getContextPath() + "/login");
     }
 }

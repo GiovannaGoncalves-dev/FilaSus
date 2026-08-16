@@ -16,23 +16,13 @@ public class UsuarioPerfilDAO {
     /** Adiciona um perfil ao usuário. Não faz nada se ele já tiver esse perfil. */
     public void adicionar(String cpfUsuario, PerfilUsuario perfil) throws SQLException {
         if (temPerfil(cpfUsuario, perfil)) return;
-        String sqlProxId = "SELECT COALESCE(MAX(id_perfil), 0) + 1 FROM UsuarioPerfil WHERE cpf_usuario = ?";
-        String sqlIns = "INSERT INTO UsuarioPerfil (id_perfil, cpf_usuario, tipo_perfil) VALUES (?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection()) {
-            int proxId;
-            try (PreparedStatement ps = conn.prepareStatement(sqlProxId)) {
-                ps.setString(1, cpfUsuario);
-                try (ResultSet rs = ps.executeQuery()) {
-                    rs.next();
-                    proxId = rs.getInt(1);
-                }
-            }
-            try (PreparedStatement ps = conn.prepareStatement(sqlIns)) {
-                ps.setInt(1, proxId);
+        String sqlIns = "INSERT IGNORE INTO UsuarioPerfil (id_perfil, cpf_usuario, tipo_perfil) VALUES (?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlIns)) {
+                ps.setInt(1, perfil.ordinal() + 1);
                 ps.setString(2, cpfUsuario);
                 ps.setString(3, perfil.name());
                 ps.executeUpdate();
-            }
         }
     }
 
@@ -65,7 +55,7 @@ public class UsuarioPerfilDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, cpfUsuario);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) lista.add(PerfilUsuario.valueOf(rs.getString("tipo_perfil")));
+                while (rs.next()) lista.add(PerfilUsuario.fromJson(rs.getString("tipo_perfil")));
             }
         }
         return lista;

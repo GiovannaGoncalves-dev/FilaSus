@@ -3,6 +3,8 @@ package br.com.filasus.controller;
 import br.com.filasus.dao.UsuarioDAO;
 import br.com.filasus.model.Usuario;
 import br.com.filasus.util.AuthUtil;
+import br.com.filasus.util.PasswordUtil;
+import br.com.filasus.util.NavigationUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -36,11 +38,12 @@ public class LoginController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/selecionar-perfil");
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath()
+                    + NavigationUtil.paginaInicial(AuthUtil.getPerfilAtivo(session)));
             return;
         }
 
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
     }
 
     @Override
@@ -65,7 +68,7 @@ public class LoginController extends HttpServlet {
         if (loginInput == null || loginInput.trim().isEmpty() || senha == null || senha.trim().isEmpty()) {
             request.setAttribute("erro", "Por favor, informe o CPF ou E-mail e a senha.");
             request.setAttribute("login", loginInput);
-            request.getRequestDispatcher("/login.jsp").forward(request, response);
+            request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
             return;
         }
 
@@ -88,43 +91,52 @@ public class LoginController extends HttpServlet {
             if (usuario == null) {
                 request.setAttribute("erro", "Usuário não encontrado ou inativo.");
                 request.setAttribute("login", loginInput);
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
                 return;
             }
 
             if (!usuario.isAtivo()) {
                 request.setAttribute("erro", "Sua conta de usuário está desativada no sistema.");
                 request.setAttribute("login", loginInput);
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
                 return;
             }
 
             // Validação da senha armazenada no banco
-            boolean senhaValida = usuario.getSenhaHash() != null && usuario.getSenhaHash().equals(senha.trim());
+            boolean senhaValida = PasswordUtil.matches(senha, usuario.getSenhaHash());
 
             if (!senhaValida) {
                 request.setAttribute("erro", "Senha incorreta.");
                 request.setAttribute("login", loginInput);
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
                 return;
+            }
+            if (PasswordUtil.needsUpgrade(usuario.getSenhaHash())) {
+                usuarioDAO.atualizarSenha(usuario.getCpf(), PasswordUtil.hash(senha));
             }
 
             // Login bem-sucedido: cria/obtem a sessão
             HttpSession session = request.getSession(true);
+            request.changeSessionId();
             AuthUtil.login(session, usuario);
+
+            if (usuario.getPerfis() != null && usuario.getPerfis().size() == 1) {
+                AuthUtil.atualizarCookiesFrontend(request, response);
+            }
 
             // Redirecionamento condicional com base nos perfis do usuário
             if (usuario.getPerfis() != null && usuario.getPerfis().size() > 1) {
                 response.sendRedirect(request.getContextPath() + "/selecionar-perfil");
             } else {
-                response.sendRedirect(request.getContextPath() + "/");
+                response.sendRedirect(request.getContextPath()
+                        + NavigationUtil.paginaInicial(AuthUtil.getPerfilAtivo(session)));
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
             request.setAttribute("erro", "Erro ao conectar com o banco de dados. Tente novamente mais tarde.");
             request.setAttribute("login", loginInput);
-            request.getRequestDispatcher("/login.jsp").forward(request, response);
+            request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
         }
     }
 }

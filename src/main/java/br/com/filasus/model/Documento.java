@@ -15,6 +15,11 @@ public class Documento {
     private String cpfUsuario;
     private TipoDocumento tipo;
     private String arquivoUrl;
+    private String nomeOriginal;
+    private Integer idFila;
+    private Integer sequenciaItemFila;
+    private String motivoPrioridade;
+    private String descricao;
     private StatusValidacaoDocumento statusValidacao = StatusValidacaoDocumento.PENDENTE;
     private String cpfValidador;
     private LocalDateTime validadoEm;
@@ -33,6 +38,21 @@ public class Documento {
 
     public String getArquivoUrl() { return arquivoUrl; }
     public void setArquivoUrl(String arquivoUrl) { this.arquivoUrl = arquivoUrl; }
+
+    public String getNomeOriginal() { return nomeOriginal; }
+    public void setNomeOriginal(String nomeOriginal) { this.nomeOriginal = nomeOriginal; }
+
+    public Integer getIdFila() { return idFila; }
+    public void setIdFila(Integer idFila) { this.idFila = idFila; }
+
+    public Integer getSequenciaItemFila() { return sequenciaItemFila; }
+    public void setSequenciaItemFila(Integer sequenciaItemFila) { this.sequenciaItemFila = sequenciaItemFila; }
+
+    public String getMotivoPrioridade() { return motivoPrioridade; }
+    public void setMotivoPrioridade(String motivoPrioridade) { this.motivoPrioridade = motivoPrioridade; }
+
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
     public StatusValidacaoDocumento getStatusValidacao() { return statusValidacao; }
     public void setStatusValidacao(StatusValidacaoDocumento statusValidacao) { this.statusValidacao = statusValidacao; }
