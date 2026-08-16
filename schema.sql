@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `gerenciamento_fila2`.`Mutirao` (
   `tipo_mutirao` VARCHAR(45) NOT NULL,
   `local_mutirao` VARCHAR(200) NOT NULL,
   `duracao_min_mutirao` INT(11) NOT NULL,
-  `status_mutirao` ENUM('aberto', 'encerrado') NOT NULL DEFAULT 'aberto',
+  `status_mutirao` ENUM('agendado', 'aberto', 'encerrado', 'cancelado') NOT NULL DEFAULT 'agendado',
   `criado_em_mutirao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
   PRIMARY KEY (`id_mutirao`),
   INDEX `idx_mutirao_unidade` (`id_unidade` ASC) VISIBLE,
@@ -138,6 +138,11 @@ CREATE TABLE IF NOT EXISTS `gerenciamento_fila2`.`Documento` (
   `cpf_usuario` CHAR(11) NOT NULL,
   `tipo_documento` ENUM('relatorio', 'exame', 'outro') NULL DEFAULT NULL,
   `arquivo_url_documento` VARCHAR(500) NULL DEFAULT NULL,
+  `nome_original_documento` VARCHAR(255) NULL DEFAULT NULL,
+  `id_fila_documento` INT(10) UNSIGNED NULL DEFAULT NULL,
+  `sequencia_item_fila_documento` INT(10) UNSIGNED NULL DEFAULT NULL,
+  `motivo_prioridade_documento` VARCHAR(60) NULL DEFAULT NULL,
+  `descricao_documento` VARCHAR(500) NULL DEFAULT NULL,
   `status_validacao_documento` ENUM('pendente', 'aprovado', 'rejeitado') NULL DEFAULT 'pendente',
   `validado_por_usuario` CHAR(11) NULL DEFAULT NULL,
   `validado_em_documento` DATETIME NULL DEFAULT NULL,
@@ -145,6 +150,7 @@ CREATE TABLE IF NOT EXISTS `gerenciamento_fila2`.`Documento` (
   PRIMARY KEY (`id_documento`),
   INDEX `idx_documento_usuario` (`cpf_usuario` ASC) VISIBLE,
   INDEX `idx_documento_validador` (`validado_por_usuario` ASC) VISIBLE,
+  INDEX `idx_documento_item_fila` (`id_fila_documento` ASC, `sequencia_item_fila_documento` ASC) VISIBLE,
   CONSTRAINT `fk_documento_usuario`
     FOREIGN KEY (`cpf_usuario`)
     REFERENCES `gerenciamento_fila2`.`Usuario` (`cpf_usuario`)
@@ -153,6 +159,11 @@ CREATE TABLE IF NOT EXISTS `gerenciamento_fila2`.`Documento` (
   CONSTRAINT `fk_documento_validador`
     FOREIGN KEY (`validado_por_usuario`)
     REFERENCES `gerenciamento_fila2`.`Usuario` (`cpf_usuario`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_documento_item_fila`
+    FOREIGN KEY (`id_fila_documento`, `sequencia_item_fila_documento`)
+    REFERENCES `gerenciamento_fila2`.`ItemFila` (`id_fila`, `sequencia_item_fila`)
     ON DELETE SET NULL
     ON UPDATE CASCADE)
 ENGINE = InnoDB

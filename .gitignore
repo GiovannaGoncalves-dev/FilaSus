@@ -1,8 +1,14 @@
+# Build
 build/
+target/
+*.class
+*.war
 
+# Logs
+*.log
 
-filasus-jsp/
-frontend/
+# Uploads gerados em tempo de execução
+uploads/
 
-Guia-Git-GitHub.docx
+# Documentação interna (não publicada)
 docs/

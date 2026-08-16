@@ -1,0 +1,35 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="br.com.filasus.util.AuthUtil" %>
+<%@ page import="br.com.filasus.model.Usuario" %>
+<%
+  String appCtx = request.getContextPath();
+  Usuario appUsuario = AuthUtil.getUsuarioLogado(request);
+%>
+<header class="header">
+  <a class="header__title" href="<%= appCtx %>/">
+    <span style="color:var(--primary)">♥</span> FilaSUS
+  </a>
+  <nav class="header__actions desktop-nav" aria-label="Navegação principal">
+    <a class="btn btn--ghost btn--sm" href="<%= appCtx %>/fila/consulta">Minha fila</a>
+    <a class="btn btn--ghost btn--sm" href="<%= appCtx %>/fila/chamar-proximo">Gerenciar fila</a>
+    <a class="btn btn--ghost btn--sm" href="<%= appCtx %>/atendimento">Atendimento</a>
+    <a class="btn btn--ghost btn--sm" href="<%= appCtx %>/relatorios">Relatórios</a>
+    <a class="btn btn--outline btn--sm" href="<%= appCtx %>/painel">Painel público</a>
+    <% if (appUsuario != null) { %>
+      <span class="hidden-mobile" style="font-size:13px;color:var(--text-muted)"><%= appUsuario.getNome() %></span>
+      <a class="btn btn--danger btn--sm" href="<%= appCtx %>/logout">Sair</a>
+    <% } %>
+  </nav>
+  <div class="mobile-nav">
+    <button type="button" class="btn btn--outline btn--sm mobile-nav__toggle" aria-expanded="false"
+            onclick="var p=this.nextElementSibling;var aberto=p.hasAttribute('hidden');p.toggleAttribute('hidden');this.setAttribute('aria-expanded', aberto);">Menu</button>
+    <nav class="mobile-nav__panel" aria-label="Navegação principal móvel" hidden>
+      <a href="<%= appCtx %>/fila/consulta">Minha fila</a>
+      <a href="<%= appCtx %>/fila/chamar-proximo">Gerenciar fila</a>
+      <a href="<%= appCtx %>/atendimento">Atendimento</a>
+      <a href="<%= appCtx %>/relatorios">Relatórios</a>
+      <a href="<%= appCtx %>/painel">Painel público</a>
+      <% if (appUsuario != null) { %><a href="<%= appCtx %>/logout">Sair</a><% } %>
+    </nav>
+  </div>
+</header>

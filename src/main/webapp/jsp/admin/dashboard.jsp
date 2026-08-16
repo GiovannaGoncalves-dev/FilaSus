@@ -1,0 +1,12 @@
+<%@ page import="java.util.*,br.com.filasus.model.Usuario" %><%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%!private String h(Object v){return v==null?"":v.toString().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;");}%>
+<%Usuario admin=(Usuario)session.getAttribute("usuarioLogado");Map<String,Integer> por=(Map<String,Integer>)request.getAttribute("porStatus");if(por==null)por=Collections.emptyMap();String ctx=request.getContextPath(),pageTitle="Painel Geral",activeNav="dashboard";%>
+<%@ include file="/WEB-INF/jspf/admin-shell-start.jspf" %>
+<div class="admin-heading"><div><h1>Painel Geral</h1><p>Visão geral do sistema e da operação.</p></div><a class="btn btn--outline" href="<%=ctx%>/admin/dashboard"><%=ico("refresh")%> Atualizar</a></div>
+<div class="grid grid-3 mb-4">
+<div class="stat-card"><div class="stat-card__icon stat-card__icon--teal"><%=ico("calendar")%></div><div class="stat-card__label">Mutirões</div><div class="stat-card__value"><%=request.getAttribute("totalMutiroes")%></div><div class="stat-card__hint">Operações cadastradas</div></div>
+<div class="stat-card"><div class="stat-card__icon stat-card__icon--amber"><%=ico("list")%></div><div class="stat-card__label">Filas</div><div class="stat-card__value"><%=request.getAttribute("totalFilas")%></div><div class="stat-card__hint">Filas configuradas</div></div>
+<div class="stat-card"><div class="stat-card__icon stat-card__icon--violet"><%=ico("ticket")%></div><div class="stat-card__label">Senhas</div><div class="stat-card__value"><%=request.getAttribute("totalItens")%></div><div class="stat-card__hint">Senhas emitidas</div></div>
+</div>
+<section class="card"><div class="card__header"><div><div class="card__title">Situação atual</div><div class="card__description">Distribuição das senhas por etapa de atendimento.</div></div></div><div class="card__body"><%if(por.isEmpty()){%><div class="empty-state"><div class="empty-state__icon"><%=ico("chart")%></div><div class="empty-state__title">Ainda não há dados</div><div class="empty-state__message">Os indicadores aparecerão quando houver senhas emitidas.</div></div><%}else{%><div class="grid grid-3"><%for(Map.Entry<String,Integer> e:por.entrySet()){%><div class="stat-card"><div class="stat-card__label"><%=h(e.getKey())%></div><div class="stat-card__value"><%=e.getValue()%></div></div><%}%></div><%}%></div></section>
+<%@ include file="/WEB-INF/jspf/admin-shell-end.jspf" %>
