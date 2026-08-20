@@ -10,18 +10,11 @@ import java.util.List;
 
 /**
  * DAO responsável pelas operações de persistência de Usuario.
- * Tabela: Usuario — chave primária natural: cpf_usuario.
- *
- * Perfis e unidades vinculadas não são colunas desta tabela (ver
- * UsuarioPerfilDAO / UsuarioUnidadeDAO); este DAO carrega ambos ao montar o
- * objeto, para que o `Usuario` retornado já venha completo.
  */
 public class UsuarioDAO {
 
     private final UsuarioPerfilDAO perfilDAO = new UsuarioPerfilDAO();
     private final UsuarioUnidadeDAO unidadeDAO = new UsuarioUnidadeDAO();
-
-    // ─── CREATE ──────────────────────────────────────────────────────────────
 
     public void inserir(Usuario usuario) throws SQLException {
         String sql = "INSERT INTO Usuario "
@@ -46,8 +39,6 @@ public class UsuarioDAO {
             ps.executeUpdate();
         }
     }
-
-    // ─── READ ─────────────────────────────────────────────────────────────────
 
     public Usuario buscarPorCpf(String cpf) throws SQLException {
         String sql = "SELECT * FROM Usuario WHERE cpf_usuario = ?";
