@@ -16,6 +16,11 @@ public enum StatusMutirao {
         return descricao;
     }
 
+    /** Valor canônico armazenado no ENUM status_mutirao do MySQL. */
+    public String toDatabaseValue() {
+        return name().toLowerCase(java.util.Locale.ROOT);
+    }
+
     public String toJson() {
         return switch (this) {
             case AGENDADO -> "agendada";

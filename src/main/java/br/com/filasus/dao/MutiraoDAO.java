@@ -26,7 +26,7 @@ public class MutiraoDAO {
             ps.setString(3, mutirao.getTipo());
             ps.setString(4, mutirao.getLocal());
             ps.setInt(5, mutirao.getDuracaoMinutos());
-            ps.setString(6, mutirao.getStatus().name());
+            ps.setString(6, mutirao.getStatus().toDatabaseValue());
             if (mutirao.getCriadoEm() == null) mutirao.setCriadoEm(java.time.LocalDateTime.now());
             ps.setTimestamp(7, Timestamp.valueOf(mutirao.getCriadoEm()));
 
@@ -78,7 +78,7 @@ public class MutiraoDAO {
         List<Mutirao> lista = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, status.name());
+            ps.setString(1, status.toDatabaseValue());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) lista.add(mapear(rs));
             }
@@ -90,7 +90,7 @@ public class MutiraoDAO {
         String sql = "UPDATE Mutirao SET status_mutirao = ? WHERE id_mutirao = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, status.name());
+            ps.setString(1, status.toDatabaseValue());
             ps.setInt(2, id);
             ps.executeUpdate();
         }
